@@ -21,6 +21,13 @@
 │   ├── joycon_descriptor.c
 │   ├── joycon_descriptor.h
 │   └── main.c
+├── kicad/
+│   ├── module/
+│   │   └── kicad project files
+│   └── smd-board/
+│       └── kicad project files
+├── tests/
+│   └── keyboard_demo.py
 └── TODO.txt
 ```
 
