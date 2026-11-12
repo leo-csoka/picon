@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# build script for pico-switch-controller firmware
-# requirements: pico-sdk installed at $HOME/.pico-sdk
+# needs pico sdk
 SDK_DIR="$HOME/.pico-sdk"
 TOOLCHAIN="$SDK_DIR/toolchain/15_2_Rel1"
 SDK="$SDK_DIR/sdk/2.3.1"

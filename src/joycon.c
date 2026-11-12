@@ -16,7 +16,6 @@
 #define PAIRING_A_PRESS_MS 700
 #define TAP_REPORT_COUNT 8 // about 120 ms at one report every 15 ms
 
-// reported firmware version, 3.72 was the old value and made the switch ask for an update
 #define FIRMWARE_MAJOR 0x0a
 #define FIRMWARE_MINOR 0x00
 
