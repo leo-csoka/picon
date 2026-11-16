@@ -73,7 +73,7 @@ int main(void) {
     /* build and initialize controller */
     stdio_init_all();
 
-    jc = joycon_create(JOYCON_LEFT, JC_COLOR_DEEP_RED);
+    jc = joycon_create(JOYCON_LEFT, JC_COLOR_NEON_BLUE);
     joycon_bt_init(jc);
 
     btstack_run_loop_set_timer_handler(&serial_timer, serial_tick);

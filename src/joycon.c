@@ -91,7 +91,6 @@ static const uint32_t color_table[JC_COLOR_COUNT][2] = {
     [JC_COLOR_NEON_PINK]   = {0xff3278, 0x1e0a0f},
     [JC_COLOR_NEON_PURPLE] = {0xb400e6, 0x160a1e},
     [JC_COLOR_NEON_ORANGE] = {0xff8c28, 0x1e140a},
-    [JC_COLOR_DEEP_RED] = {0x8b0000, 0x1e0a0a} // extra test color
 };
 
 // ---------- helpers ---------- //
