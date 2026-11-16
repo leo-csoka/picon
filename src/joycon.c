@@ -348,11 +348,9 @@ static void write_int16(uint8_t *out, int value) {
     out[1] = (value >> 8) & 0xff;
 }
 
-// gravity from pitch and roll, yaw can't be seen by an accelerometer and gyro is left at 0.
-// axis signs are a first guess and still need testing on a real switch
 static void write_imu(const Joycon *jc, uint8_t *out) {
-    float pitch = jc->imu[1] * PI_F / 180.0f;
-    float roll = jc->imu[2] * PI_F / 180.0f;
+    float pitch = jc->imu[0] * PI_F / 180.0f;
+    float roll = jc->imu[1] * PI_F / 180.0f;
     int accel_x = (int)lroundf(-sinf(pitch) * ACCEL_PER_G);
     int accel_y = (int)lroundf(sinf(roll) * cosf(pitch) * ACCEL_PER_G);
     int accel_z = (int)lroundf(cosf(roll) * cosf(pitch) * ACCEL_PER_G);

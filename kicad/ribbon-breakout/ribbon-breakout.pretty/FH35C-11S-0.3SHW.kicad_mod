@@ -1,0 +1,214 @@
+(footprint "FH35C-11S-0.3SHW"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Hirose FH35C-11S-0.3SHW, 0.3mm pitch, 11 contacts, back-flip dual-sided FPC connector. Land pattern from the LCSC/JLCPCB library (matches Hirose FH35C catalog: B=2.4, C=3.0). Mouth faces +Y.")
+	(tags "FPC FFC 0.3mm Hirose FH35C")
+	(property "Reference" "REF**"
+		(at -4.4 0 90)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "FH35C-11S-0.3SHW"
+		(at 0 4 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.hirose.com/product/series/FH35C"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" "0.3mm pitch FPC connector, 11 pos, dual-sided contacts, 0.2mm FPC"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "MPN" "FH35C-11S-0.3SHW(99)"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "LCSC" "C5741856"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(fp_rect
+		(start -2.45 -2.67)
+		(end 2.45 0.53)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(fp_line
+		(start -2.6 -2.77)
+		(end 2.6 -2.77)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start -2.6 -2.77)
+		(end -2.6 0.53)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_line
+		(start 2.6 -2.77)
+		(end 2.6 0.53)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+	)
+	(fp_poly
+		(pts
+			(xy 1.5 2.05) (xy 1.3 2.4) (xy 1.7 2.4)
+		)
+		(stroke
+			(width 0)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -2.85 -2.95)
+		(end 2.85 2.55)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(pad "1" smd rect
+		(at 1.5 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "2" smd rect
+		(at 1.2 -1.44)
+		(size 0.3 0.65)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "3" smd rect
+		(at 0.9 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "4" smd rect
+		(at 0.6 -1.44)
+		(size 0.3 0.65)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "5" smd rect
+		(at 0.3 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "6" smd rect
+		(at 0 -1.44)
+		(size 0.3 0.65)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "7" smd rect
+		(at -0.3 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "8" smd rect
+		(at -0.6 -1.44)
+		(size 0.3 0.65)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "9" smd rect
+		(at -0.9 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "10" smd rect
+		(at -1.2 -1.44)
+		(size 0.3 0.65)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "11" smd rect
+		(at -1.5 1.44)
+		(size 0.3 0.8)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "12" smd rect
+		(at 2.2 1.16)
+		(size 0.4 0.95)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(pad "12" smd rect
+		(at -2.2 1.16)
+		(size 0.4 0.95)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/ribbon-breakout.3dshapes/FH35C-11S-0.3SHW.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

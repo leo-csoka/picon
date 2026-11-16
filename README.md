@@ -24,6 +24,8 @@
 ├── kicad/
 │   ├── module/
 │   │   └── kicad project files
+│   ├── ribbon-breakout/
+│   │   └── FPC breakout for prototyping
 │   └── smd-board/
 │       └── kicad project files
 ├── tests/
@@ -31,4 +33,4 @@
 └── TODO.txt
 ```
 
-**last updated**: Oct 22, 2026
+**last updated**: Nov 16, 2026

@@ -70,7 +70,7 @@ struct Joycon {
     // input state, only changes when a setter is called
     uint32_t buttons_held;
     float sticks[4];         // lx, ly, rx, ry in -1.0 to 1.0
-    float imu[3];            // yaw, pitch, roll in degrees
+    float imu[2];            // pitch, roll in degrees
     float battery;           // 0.0 to 1.0
 
     // state reported back from the switch
@@ -93,7 +93,7 @@ struct Joycon {
     bool (*press)(Joycon *jc, const char *button);
     bool (*release)(Joycon *jc, const char *button);
     void (*btn_press_report)(Joycon *jc, const char *buttons[], int count);
-    void (*imu_update)(Joycon *jc, const float positions[3]);
+    void (*imu_update)(Joycon *jc, const float positions[2]);
     void (*stick_update)(Joycon *jc, const float sticks[4]);
     void (*battery_update)(Joycon *jc, float level);
     joycon_pair_state (*get_pair_state)(const Joycon *jc);

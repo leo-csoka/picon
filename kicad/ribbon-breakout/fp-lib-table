@@ -1,0 +1,10 @@
+(fp_lib_table
+	(version 7)
+	(lib
+		(name "ribbon-breakout")
+		(type "KiCad")
+		(uri "${KIPRJMOD}/ribbon-breakout.pretty")
+		(options "")
+		(descr "FH35C-11S footprint for the ribbon breakout")
+	)
+)

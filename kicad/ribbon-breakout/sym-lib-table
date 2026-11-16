@@ -1,0 +1,10 @@
+(sym_lib_table
+	(version 7)
+	(lib
+		(name "ribbon-breakout")
+		(type "KiCad")
+		(uri "${KIPRJMOD}/ribbon-breakout.kicad_sym")
+		(options "")
+		(descr "FH35C-11S symbol for the ribbon breakout")
+	)
+)
