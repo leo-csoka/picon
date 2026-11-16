@@ -47,6 +47,7 @@ typedef enum {
     JC_COLOR_NEON_PINK,
     JC_COLOR_NEON_PURPLE,
     JC_COLOR_NEON_ORANGE,
+    JC_COLOR_DEEP_RED, // extra test color
     JC_COLOR_COUNT
 } joycon_color;
 

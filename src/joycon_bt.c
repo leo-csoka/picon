@@ -9,6 +9,8 @@
 
 #define HID_SERVICE_BUFFER_SIZE 512
 #define INPUT_REPORT_INTERVAL_MS 15
+#define RECONNECT_INTERVAL_MS 500
+#define PAGE_TIMEOUT 0x1000 // 2.56 s, so a redial to a sleeping switch fails fast (default is ~15 s)
 
 static uint8_t hid_service_buffer[HID_SERVICE_BUFFER_SIZE];
 static uint8_t device_id_service_buffer[100];
@@ -17,6 +19,28 @@ static Joycon *active_joycon;
 static uint16_t hid_cid;
 static btstack_timer_source_t input_report_timer;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
+
+// last host we were connected to, redialed whenever the link drops
+static bd_addr_t host_addr;
+static bool have_host;
+static btstack_timer_source_t reconnect_timer;
+
+static void schedule_reconnect(void) {
+    if (!have_host) {
+        return;
+    }
+    btstack_run_loop_remove_timer(&reconnect_timer);
+    btstack_run_loop_set_timer(&reconnect_timer, RECONNECT_INTERVAL_MS);
+    btstack_run_loop_add_timer(&reconnect_timer);
+}
+
+static void reconnect_timer_handler(btstack_timer_source_t *timer) {
+    UNUSED(timer);
+    uint16_t cid; // not hid_cid, that stays 0 until the link is actually open
+    if (hid_cid == 0 && hid_device_connect(host_addr, &cid) != ERROR_CODE_SUCCESS) {
+        schedule_reconnect();
+    }
+}
 
 // ---------- hid callbacks ---------- //
 
@@ -81,10 +105,14 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
             uint8_t status = hid_subevent_connection_opened_get_status(packet);
             if (status != ERROR_CODE_SUCCESS) {
                 printf("HID connection failed: 0x%02x\n", status);
+                schedule_reconnect();
                 break;
             }
 
             hid_cid = hid_subevent_connection_opened_get_hid_cid(packet);
+            hid_subevent_connection_opened_get_bd_addr(packet, host_addr);
+            have_host = true;
+            btstack_run_loop_remove_timer(&reconnect_timer);
             gap_discoverable_control(0);
             joycon_connected(active_joycon);
             printf("HID host connected (cid %u)\n", hid_cid);
@@ -110,6 +138,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
             btstack_run_loop_remove_timer(&input_report_timer);
             hid_cid = 0;
             joycon_disconnected(active_joycon);
+            schedule_reconnect();
             break;
 
         default:
@@ -138,12 +167,12 @@ void joycon_bt_init(Joycon *jc) {
     gap_set_class_of_device(0x2508);
     gap_set_local_name(jc->name);
     gap_connectable_control(1);
-    // scan more often than the default 1.28 s page interval so the switch finds and connects faster
     gap_set_page_scan_activity(0x0200, 0x0100);
     gap_inquiry_set_scan_activity(0x0200, 0x0100);
     gap_set_default_link_policy_settings(
         LM_LINK_POLICY_ENABLE_ROLE_SWITCH | LM_LINK_POLICY_ENABLE_SNIFF_MODE);
     gap_set_allow_role_switch(true);
+    gap_set_page_timeout(PAGE_TIMEOUT);
 
     l2cap_init();
     sdp_init();
@@ -192,6 +221,7 @@ void joycon_bt_init(Joycon *jc) {
     hid_device_register_report_data_callback(&report_data_handler);
     hid_device_register_set_report_callback(&set_report_handler);
     btstack_run_loop_set_timer_handler(&input_report_timer, input_report_timer_handler);
+    btstack_run_loop_set_timer_handler(&reconnect_timer, reconnect_timer_handler);
     hid_device_register_packet_handler(&packet_handler);
 
     hci_event_callback_registration.callback = &packet_handler;
