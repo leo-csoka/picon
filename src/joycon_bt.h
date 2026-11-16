@@ -6,6 +6,9 @@
 // sets up bluetooth classic hid for this joycon, timers can be added after this
 void joycon_bt_init(Joycon *jc);
 
+// connect button: makes the joycon discoverable until a host connects, ignored while connected
+void joycon_bt_pair(void);
+
 // runs the btstack loop (does not return)
 void joycon_bt_run(void);
 

@@ -6,10 +6,10 @@ import time
 # constants
 BUTTONS = {"JCON_UP", "JCON_DOWN", "JCON_LEFT", "JCON_RIGHT", "DUP", "DDOWN", "DLEFT", "DRIGHT", "SR", "SL", "MINUS"}
 
-SERIAL_PORT = "/dev/tty.usbmodem1301" # replace with current serial port
+SERIAL_PORT = "/dev/tty.usbmodem11301" # replace with current serial port
 FRICTION_CONSTANT = 0.9 # slow down current velocity and recenter position on release
 ACCELERATION_CONSTANT = 0.007 # velocity added per frame
-KICK_CONSTANT = 0.25 # kick to simulate a tap
+KICK_CONSTANT = 0.2 # kick to simulate a tap
 FPS = 60
 
 VELOCITY_X = 0
@@ -18,6 +18,7 @@ JOYSTICK_X = 0 # -1 to 1
 JOYSTICK_Y = 0 # -1 to 1
 
 MOVE_KEYS = {
+    # determines direction of motion
     pygame.K_w: (1, 0),
     pygame.K_s: (-1, 0),
     pygame.K_a: (0, 1),
@@ -98,7 +99,6 @@ while running:
 
     # return controller state report over serial to rpi pico w
     report = f"{JOYSTICK_X:.4f},{JOYSTICK_Y:.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_1][0])}\n"
-    print(report, end='')
     ser.write(report.encode())
 
 

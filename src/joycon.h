@@ -51,9 +51,9 @@ typedef enum {
 } joycon_color;
 
 typedef enum {
-    JOYCON_DISCONNECTED = 0, // no host, leds should flash
-    JOYCON_PAIRING = 1,      // host connected, still sending the pairing button sequence
-    JOYCON_CONNECTED = 2     // pairing sequence finished
+    JOYCON_DISCONNECTED = 0, // idle, no host
+    JOYCON_PAIRING = 1,      // connect button pressed, discoverable and waiting for a host
+    JOYCON_CONNECTED = 2     // host connected
 } joycon_pair_state;
 
 // ---------- struct ---------- //
@@ -69,8 +69,6 @@ struct Joycon {
 
     // input state, only changes when a setter is called
     uint32_t buttons_held;
-    uint32_t buttons_tapped;
-    uint8_t tap_reports_left;
     float sticks[4];         // lx, ly, rx, ry in -1.0 to 1.0
     float imu[3];            // yaw, pitch, roll in degrees
     float battery;           // 0.0 to 1.0
@@ -86,8 +84,6 @@ struct Joycon {
     uint8_t address[6];
     uint8_t input_timer;
     uint32_t reports_sent;
-    uint32_t connected_ms;
-    uint8_t pairing_phase;
     bool reply_pending;
     uint8_t pending_command;
     uint8_t pending_data[38];
@@ -96,14 +92,10 @@ struct Joycon {
     // methods, set by joycon_init so they can be called like jc->press(jc, "A")
     bool (*press)(Joycon *jc, const char *button);
     bool (*release)(Joycon *jc, const char *button);
-    bool (*tap)(Joycon *jc, const char *button);
     void (*btn_press_report)(Joycon *jc, const char *buttons[], int count);
-    void (*release_all)(Joycon *jc);
     void (*imu_update)(Joycon *jc, const float positions[3]);
     void (*stick_update)(Joycon *jc, const float sticks[4]);
     void (*battery_update)(Joycon *jc, float level);
-    void (*set_color)(Joycon *jc, joycon_color color);
-    void (*set_color_rgb)(Joycon *jc, uint32_t body, uint32_t buttons);
     joycon_pair_state (*get_pair_state)(const Joycon *jc);
     float (*get_rumble_state)(const Joycon *jc);
     uint8_t (*get_player_leds)(const Joycon *jc);
@@ -124,13 +116,14 @@ bool joycon_color_from_char(char letter, joycon_color *color);
 
 // ---------- link functions, called by the bluetooth layer ---------- //
 
-void joycon_connected(Joycon *jc, uint32_t now_ms);
+void joycon_pairing(Joycon *jc);
+void joycon_connected(Joycon *jc);
 void joycon_disconnected(Joycon *jc);
 
 // data starts at the timer byte, right after the report id
 void joycon_handle_output(Joycon *jc, uint8_t report_id, const uint8_t *data, int size);
 
 // fills the next report to send, either a subcommand reply or a standard input report
-void joycon_next_report(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE], uint32_t now_ms);
+void joycon_next_report(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE]);
 
 #endif

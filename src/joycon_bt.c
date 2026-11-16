@@ -85,7 +85,8 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
             }
 
             hid_cid = hid_subevent_connection_opened_get_hid_cid(packet);
-            joycon_connected(active_joycon, to_ms_since_boot(get_absolute_time()));
+            gap_discoverable_control(0);
+            joycon_connected(active_joycon);
             printf("HID host connected (cid %u)\n", hid_cid);
             hid_device_request_can_send_now_event(hid_cid);
             break;
@@ -97,7 +98,7 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
             }
 
             uint8_t report[JOYCON_REPORT_SIZE];
-            joycon_next_report(active_joycon, report, to_ms_since_boot(get_absolute_time()));
+            joycon_next_report(active_joycon, report);
             hid_device_send_interrupt_message(hid_cid, report, sizeof(report));
             btstack_run_loop_set_timer(&input_report_timer, INPUT_REPORT_INTERVAL_MS);
             btstack_run_loop_add_timer(&input_report_timer);
@@ -118,6 +119,15 @@ static void packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *packe
 
 // ---------- setup ---------- //
 
+// the connect button, stays discoverable until a host connects
+void joycon_bt_pair(void) {
+    if (hid_cid != 0) {
+        return;
+    }
+    gap_discoverable_control(1);
+    joycon_pairing(active_joycon);
+}
+
 void joycon_bt_init(Joycon *jc) {
     active_joycon = jc;
 
@@ -128,7 +138,9 @@ void joycon_bt_init(Joycon *jc) {
     gap_set_class_of_device(0x2508);
     gap_set_local_name(jc->name);
     gap_connectable_control(1);
-    gap_discoverable_control(1);
+    // scan more often than the default 1.28 s page interval so the switch finds and connects faster
+    gap_set_page_scan_activity(0x0200, 0x0100);
+    gap_inquiry_set_scan_activity(0x0200, 0x0100);
     gap_set_default_link_policy_settings(
         LM_LINK_POLICY_ENABLE_ROLE_SWITCH | LM_LINK_POLICY_ENABLE_SNIFF_MODE);
     gap_set_allow_role_switch(true);
@@ -186,6 +198,8 @@ void joycon_bt_init(Joycon *jc) {
     hci_add_event_handler(&hci_event_callback_registration);
 
     printf("ready\n");
+    // remove this once a connect button is wired up
+    joycon_bt_pair();
     hci_power_control(HCI_POWER_ON);
 }
 

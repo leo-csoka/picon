@@ -24,5 +24,6 @@
 # joycon class follow-ups
 
 [] - Live test colors, rumble, imu axis signs on the switch
-[] - Serial command input (press/tap/stick) for testing without buttons
+[] - Serial command input (press/stick) for testing without buttons
+[] - Wire a gpio connect button to joycon_bt_pair() and drop the pairing-mode call at the end of joycon_bt_init
 [] - Remove main.c once serial input owns startup

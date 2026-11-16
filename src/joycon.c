@@ -9,13 +9,6 @@
 
 // ---------- constants ---------- //
 
-#define PAIRING_NEUTRAL_MS 1000
-#define PAIRING_SL_SR_PRESS_MS 400
-#define PAIRING_SL_SR_RELEASE_MS 300
-#define PAIRING_SL_SR_PULSES 4
-#define PAIRING_A_PRESS_MS 700
-#define TAP_REPORT_COUNT 8 // about 120 ms at one report every 15 ms
-
 #define FIRMWARE_MAJOR 0x0a
 #define FIRMWARE_MINOR 0x00
 
@@ -23,14 +16,6 @@
 #define STICK_RANGE 1800
 #define ACCEL_PER_G 4096.0f
 #define PI_F 3.14159265f
-
-enum pairing_phase {
-    PHASE_NEUTRAL,
-    PHASE_SL_SR_PRESS,
-    PHASE_SL_SR_RELEASE,
-    PHASE_A_PRESS,
-    PHASE_DONE
-};
 
 // where things live in the 50 byte report (byte 0 is the 0xa1 hid header)
 enum report_offset {
@@ -158,28 +143,12 @@ static bool joycon_release(Joycon *jc, const char *button) {
     return mask != 0;
 }
 
-// presses for a few reports then lets go on its own, so games always see it
-static bool joycon_tap(Joycon *jc, const char *button) {
-    uint32_t mask = joycon_button_from_name(button);
-    if (mask != 0) {
-        jc->buttons_tapped |= mask;
-        jc->tap_reports_left = TAP_REPORT_COUNT;
-    }
-    return mask != 0;
-}
-
 // the held buttons become exactly this list
 static void joycon_btn_press_report(Joycon *jc, const char *buttons[], int count) {
     jc->buttons_held = 0;
     for (int i = 0; i < count; i++) {
         joycon_press(jc, buttons[i]);
     }
-}
-
-static void joycon_release_all(Joycon *jc) {
-    jc->buttons_held = 0;
-    jc->buttons_tapped = 0;
-    jc->tap_reports_left = 0;
 }
 
 static void joycon_imu_update(Joycon *jc, const float positions[3]) {
@@ -194,16 +163,6 @@ static void joycon_stick_update(Joycon *jc, const float sticks[4]) {
 
 static void joycon_battery_update(Joycon *jc, float level) {
     jc->battery = clamp_float(level, 0.0f, 1.0f);
-}
-
-static void joycon_set_color_rgb(Joycon *jc, uint32_t body, uint32_t buttons) {
-    rgb_to_bytes(body, jc->body_color);
-    rgb_to_bytes(buttons, jc->button_color);
-}
-
-static void joycon_set_color(Joycon *jc, joycon_color color) {
-    if (color >= JC_COLOR_COUNT) color = JC_COLOR_GRAY;
-    joycon_set_color_rgb(jc, color_table[color][0], color_table[color][1]);
 }
 
 // ---------- getters ---------- //
@@ -230,19 +189,17 @@ void joycon_init(Joycon *jc, joycon_side side, joycon_color color) {
 
     jc->press = joycon_press;
     jc->release = joycon_release;
-    jc->tap = joycon_tap;
     jc->btn_press_report = joycon_btn_press_report;
-    jc->release_all = joycon_release_all;
     jc->imu_update = joycon_imu_update;
     jc->stick_update = joycon_stick_update;
     jc->battery_update = joycon_battery_update;
-    jc->set_color = joycon_set_color;
-    jc->set_color_rgb = joycon_set_color_rgb;
     jc->get_pair_state = joycon_get_pair_state;
     jc->get_rumble_state = joycon_get_rumble_state;
     jc->get_player_leds = joycon_get_player_leds;
 
-    joycon_set_color(jc, color);
+    if (color >= JC_COLOR_COUNT) color = JC_COLOR_GRAY;
+    rgb_to_bytes(color_table[color][0], jc->body_color);
+    rgb_to_bytes(color_table[color][1], jc->button_color);
 }
 
 Joycon *joycon_create(joycon_side side, joycon_color color) {
@@ -253,11 +210,13 @@ Joycon *joycon_create(joycon_side side, joycon_color color) {
 
 // ---------- link state ---------- //
 
-void joycon_connected(Joycon *jc, uint32_t now_ms) {
-    jc->input_timer = 0;
-    jc->connected_ms = now_ms;
-    jc->pairing_phase = PHASE_DONE;
+void joycon_pairing(Joycon *jc) {
     jc->pair_state = JOYCON_PAIRING;
+}
+
+void joycon_connected(Joycon *jc) {
+    jc->input_timer = 0;
+    jc->pair_state = JOYCON_CONNECTED;
     jc->reply_pending = false;
     jc->imu_enabled = false;
     jc->vibration_enabled = false;
@@ -408,43 +367,6 @@ static void write_imu(const Joycon *jc, uint8_t *out) {
     }
 }
 
-static uint32_t pairing_buttons(Joycon *jc, uint32_t now_ms) {
-    uint32_t elapsed = now_ms - jc->connected_ms;
-    uint32_t buttons = 0;
-    uint8_t phase = PHASE_NEUTRAL;
-
-    if (elapsed >= PAIRING_NEUTRAL_MS) {
-        uint32_t sequence_ms = elapsed - PAIRING_NEUTRAL_MS;
-        uint32_t pulse_period_ms = PAIRING_SL_SR_PRESS_MS + PAIRING_SL_SR_RELEASE_MS;
-        uint32_t sl_sr_total_ms = pulse_period_ms * PAIRING_SL_SR_PULSES;
-
-        if (sequence_ms < sl_sr_total_ms) {
-            phase = sequence_ms % pulse_period_ms < PAIRING_SL_SR_PRESS_MS
-                ? PHASE_SL_SR_PRESS : PHASE_SL_SR_RELEASE;
-        } else if (sequence_ms < sl_sr_total_ms + PAIRING_A_PRESS_MS) {
-            phase = PHASE_A_PRESS;
-        } else {
-            phase = PHASE_DONE;
-        }
-    }
-
-    if (phase == PHASE_SL_SR_PRESS) buttons = JC_BTN_SL | JC_BTN_SR;
-    if (phase == PHASE_A_PRESS) buttons = JC_BTN_A;
-
-    if (phase != jc->pairing_phase) {
-        if (phase == PHASE_SL_SR_PRESS && jc->pairing_phase == PHASE_NEUTRAL) {
-            printf("Pairing input: sending %u SL+SR presses\n", PAIRING_SL_SR_PULSES);
-        } else if (phase == PHASE_A_PRESS) {
-            printf("Pairing input: A confirmation\n");
-        } else if (phase == PHASE_DONE) {
-            printf("Pairing input: sequence complete\n");
-            jc->pair_state = JOYCON_CONNECTED;
-        }
-        jc->pairing_phase = phase;
-    }
-    return buttons;
-}
-
 static void write_buttons(const Joycon *jc, uint8_t *report, uint32_t buttons) {
     for (size_t i = 0; i < sizeof(button_bits) / sizeof(button_bits[0]); i++) {
         if (buttons & button_bits[i].mask) {
@@ -458,21 +380,14 @@ static void write_buttons(const Joycon *jc, uint8_t *report, uint32_t buttons) {
     if (buttons & JC_BTN_SL) report[side_byte] |= 0x20;
 }
 
-static void build_input_report(Joycon *jc, uint8_t report_id, uint8_t report[JOYCON_REPORT_SIZE], uint32_t now_ms) {
+static void build_input_report(Joycon *jc, uint8_t report_id, uint8_t report[JOYCON_REPORT_SIZE]) {
     memset(report, 0, JOYCON_REPORT_SIZE);
     report[REPORT_HEADER] = 0xa1;
     report[REPORT_ID] = report_id;
     report[REPORT_TIMER] = jc->input_timer++;
     report[REPORT_BATTERY] = battery_byte(jc);
 
-    uint32_t buttons = jc->buttons_held | jc->buttons_tapped;
-    if (jc->tap_reports_left > 0 && --jc->tap_reports_left == 0) {
-        jc->buttons_tapped = 0;
-    }
-    if (jc->pair_state == JOYCON_PAIRING) {
-        buttons |= pairing_buttons(jc, now_ms);
-    }
-    write_buttons(jc, report, buttons);
+    write_buttons(jc, report, jc->buttons_held);
 
     pack_stick(report + REPORT_LEFT_STICK, jc->sticks[0], jc->sticks[1]);
     pack_stick(report + REPORT_RIGHT_STICK, jc->sticks[2], jc->sticks[3]);
@@ -483,12 +398,12 @@ static void build_input_report(Joycon *jc, uint8_t report_id, uint8_t report[JOY
     }
 }
 
-static void build_subcommand_reply(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE], uint32_t now_ms) {
+static void build_subcommand_reply(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE]) {
     uint8_t command = jc->pending_command;
     const uint8_t *parameters = jc->pending_data;
     uint8_t parameter_count = jc->pending_size;
 
-    build_input_report(jc, JOYCON_INPUT_SUBCOMMAND_REPLY, report, now_ms);
+    build_input_report(jc, JOYCON_INPUT_SUBCOMMAND_REPLY, report);
     // the reply is a standard report with an ack byte and the command echoed at the data offset
     report[REPORT_DATA] = 0x80;
     report[REPORT_DATA + 1] = command;
@@ -561,13 +476,13 @@ static void build_subcommand_reply(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE
     }
 }
 
-void joycon_next_report(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE], uint32_t now_ms) {
+void joycon_next_report(Joycon *jc, uint8_t report[JOYCON_REPORT_SIZE]) {
     jc->reports_sent++;
     if (jc->reply_pending) {
-        build_subcommand_reply(jc, report, now_ms);
+        build_subcommand_reply(jc, report);
         printf("Joy-Con setup reply: 0x%02x\n", jc->pending_command);
         jc->reply_pending = false;
     } else {
-        build_input_report(jc, JOYCON_INPUT_STANDARD, report, now_ms);
+        build_input_report(jc, JOYCON_INPUT_STANDARD, report);
     }
 }
