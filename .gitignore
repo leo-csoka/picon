@@ -3,3 +3,5 @@ build
 .venv/
 build-cli
 .history/
+.DS_Store
+.env
