@@ -57,9 +57,6 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key in KEYS:
                 KEYS[event.key] = (True, time.time())
-            if event.key in MOVE_KEYS:
-                JOYSTICK_X += KICK_CONSTANT * MOVE_KEYS[event.key][0]
-                JOYSTICK_Y += KICK_CONSTANT * MOVE_KEYS[event.key][1]
         elif event.type == pygame.KEYUP:
             if event.key in KEYS:
                 KEYS[event.key] = (False, 0)
