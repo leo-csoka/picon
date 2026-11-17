@@ -6,7 +6,7 @@ import time
 # constants
 BUTTONS = {"JCON_UP", "JCON_DOWN", "JCON_LEFT", "JCON_RIGHT", "DUP", "DDOWN", "DLEFT", "DRIGHT", "SR", "SL", "MINUS"}
 
-SERIAL_PORT = "/dev/tty.usbmodem11301" # replace with current serial port
+SERIAL_PORT = "/dev/tty.usbmodem1301" # replace with current serial port
 FRICTION_CONSTANT = 0.9 # slow down current velocity and recenter position on release
 ACCELERATION_CONSTANT = 0.007 # velocity added per frame
 KICK_CONSTANT = 0.2 # kick to simulate a tap

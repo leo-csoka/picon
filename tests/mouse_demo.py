@@ -6,7 +6,7 @@ import time
 # constants
 BUTTONS = {"JCON_UP", "JCON_DOWN", "JCON_LEFT", "JCON_RIGHT", "DUP", "DDOWN", "DLEFT", "DRIGHT", "SR", "SL", "MINUS"}
 
-SERIAL_PORT = "/dev/tty.usbmodem11301" # replace with current serial port
+SERIAL_PORT = "/dev/tty.usbmodem1301" # replace with current serial port
 FPS = 60
 
 JOYSTICK_X = 0 # -1 to 1
@@ -27,7 +27,7 @@ KEYS = {
 }
 
 # initialize serial connection and pygame
-# ser = serial.Serial(SERIAL_PORT, 115200) 
+ser = serial.Serial(SERIAL_PORT, 1301) 
 
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
@@ -58,7 +58,7 @@ while running:
     JOYSTICK_Y -= center_y
     radius = math.hypot(JOYSTICK_X, JOYSTICK_Y)
     if radius > 200: 
-        # forces radius to 180
+        # forces radius to 200
         JOYSTICK_X = JOYSTICK_X / radius * 200
         JOYSTICK_Y = JOYSTICK_Y / radius * 200
 
@@ -69,8 +69,10 @@ while running:
 
     JOYSTICK_X /= 200
     JOYSTICK_Y /= 200
-    report = f"{JOYSTICK_X:.4f},{JOYSTICK_Y:.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_1][0])}\n"
-    print(report)
+
+    report = f"{(-1*JOYSTICK_Y):.4f},{(-1*JOYSTICK_X):.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_1][0])}\n"
+    ser.write(report.encode())
+
     clock.tick(FPS)
 
 pygame.quit()
