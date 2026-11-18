@@ -8,9 +8,9 @@
 
 // constants
 #define BUFFER_SIZE 128
-#define MAX_TOKENS 9
+#define MAX_TOKENS 12
 #define BUTTON_COUNT ((int)(sizeof(buttons) / sizeof(buttons[0])))
-static const char *buttons[] = {"DUP", "DDOWN", "DLEFT", "DRIGHT", "SR", "SL", "MINUS"};
+static const char *buttons[] = {"Y", "X", "A", "B", "L", "R", "ZL", "ZR", "MINUS", "PLUS"};
 
 static Joycon *jc;
 static btstack_timer_source_t serial_timer;
@@ -73,7 +73,7 @@ int main(void) {
     /* build and initialize controller */
     stdio_init_all();
 
-    jc = joycon_create(JOYCON_LEFT, JC_COLOR_NEON_BLUE);
+    jc = joycon_create(JOYCON_LEFT, JC_COLOR_NEON_RED);
     joycon_bt_init(jc);
 
     btstack_run_loop_set_timer_handler(&serial_timer, serial_tick);

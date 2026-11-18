@@ -4,9 +4,10 @@ import serial
 import time
 
 # constants
-BUTTONS = {"JCON_UP", "JCON_DOWN", "JCON_LEFT", "JCON_RIGHT", "DUP", "DDOWN", "DLEFT", "DRIGHT", "SR", "SL", "MINUS"}
+BUTTONS = {"JCON_UP", "JCON_DOWN", "JCON_LEFT", "JCON_RIGHT", "Y", "X", "A", "B", "L", "R", "ZL", "ZR", "MINUS", "PLUS"}
 
-SERIAL_PORT = "/dev/tty.usbmodem1301" # replace with current serial port
+SERIAL_PORT_RIGHT = "/dev/tty.usbmodem11301" # replace with current serial port
+SERIAL_PORT_LEFT = "/dev/tty.usbmodem11401" # replace with current serial port
 FRICTION_CONSTANT = 0.9 # slow down current velocity and recenter position on release
 ACCELERATION_CONSTANT = 0.007 # velocity added per frame
 KICK_CONSTANT = 0.2 # kick to simulate a tap
@@ -16,6 +17,9 @@ VELOCITY_X = 0
 VELOCITY_Y = 0
 JOYSTICK_X = 0 # -1 to 1
 JOYSTICK_Y = 0 # -1 to 1
+
+LEFT_JOYSTICK_X = 0 # -1 to 1
+LEFT_JOYSTICK_Y = 0 # -1 to 1
 
 MOVE_KEYS = {
     # determines direction of motion
@@ -36,12 +40,16 @@ KEYS = {
     pygame.K_l: (False, 0),
     pygame.K_y: (False, 0),
     pygame.K_u: (False, 0),
-    pygame.K_1: (False, 0)
+    pygame.K_i: (False, 0),
+    pygame.K_o: (False, 0),
+    pygame.K_1: (False, 0),
+    pygame.K_2: (False, 0)
 }
 
 
 # initialize serial connection and pygame
-ser = serial.Serial(SERIAL_PORT, 115200) 
+ser_left = serial.Serial(SERIAL_PORT_LEFT, 115200) 
+ser_right = serial.Serial(SERIAL_PORT_RIGHT, 115200) 
 
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
@@ -60,6 +68,31 @@ while running:
         elif event.type == pygame.KEYUP:
             if event.key in KEYS:
                 KEYS[event.key] = (False, 0)
+
+
+    # left stick update:
+    # update joystick position based on mouse movement
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    LEFT_JOYSTICK_X = mouse_x
+    LEFT_JOYSTICK_Y = mouse_y
+
+    # normalize the stick within the circle
+    center_x, center_y = 320, 240
+    LEFT_JOYSTICK_X -= center_x
+    LEFT_JOYSTICK_Y -= center_y
+    radius = math.hypot(LEFT_JOYSTICK_X, LEFT_JOYSTICK_Y)
+    if radius > 200: 
+        # forces radius to 200
+        LEFT_JOYSTICK_X = LEFT_JOYSTICK_X / radius * 200
+        LEFT_JOYSTICK_Y = LEFT_JOYSTICK_Y / radius * 200
+
+    screen.fill((0, 0, 0))
+    circle = pygame.draw.circle(screen, (0, 255, 0), (320, 240), 200, 4)
+    pointer_indicator = pygame.draw.circle(screen, (255, 0, 0), (int((LEFT_JOYSTICK_X + center_x)), int((LEFT_JOYSTICK_Y + center_y))), 5)
+    pygame.display.flip()
+
+    LEFT_JOYSTICK_X /= 200
+    LEFT_JOYSTICK_Y /= 200
 
     # fix frame rate
     clock.tick(FPS)
@@ -94,9 +127,10 @@ while running:
             VELOCITY_X -= outward * JOYSTICK_X
             VELOCITY_Y -= outward * JOYSTICK_Y
 
-    # return controller state report over serial to rpi pico w
-    report = f"{JOYSTICK_X:.4f},{JOYSTICK_Y:.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_1][0])}\n"
-    ser.write(report.encode())
+    left_report = f"{LEFT_JOYSTICK_X:.4f},{LEFT_JOYSTICK_Y:.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_i][0])},{int(KEYS[pygame.K_o][0])},{int(KEYS[pygame.K_1][0])},{int(KEYS[pygame.K_2][0])}\n"
+    right_report = f"{-JOYSTICK_Y:.4f},{JOYSTICK_X:.4f},{int(KEYS[pygame.K_h][0])},{int(KEYS[pygame.K_j][0])},{int(KEYS[pygame.K_k][0])},{int(KEYS[pygame.K_l][0])},{int(KEYS[pygame.K_y][0])},{int(KEYS[pygame.K_u][0])},{int(KEYS[pygame.K_i][0])},{int(KEYS[pygame.K_o][0])},{int(KEYS[pygame.K_1][0])},{int(KEYS[pygame.K_2][0])}\n"
+    ser_left.write(left_report.encode())
+    ser_right.write(right_report.encode())
 
 
 pygame.quit()
